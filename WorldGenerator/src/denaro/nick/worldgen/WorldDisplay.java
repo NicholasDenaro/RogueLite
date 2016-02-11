@@ -10,14 +10,19 @@ public class WorldDisplay extends Canvas
 {
 	private World world;
 	public boolean showBiome;
+	public boolean showCave;
 	public boolean showConstructs;
+	public boolean showZone;
 	
 	public WorldDisplay(World world)
 	{
 		this.world = world;
 		this.setPreferredSize(new Dimension(world.getWidth(), world.getHeight()));
 		showBiome = false;
+		showCave = true;
 		showConstructs = true;
+		showZone = false;
+		
 	}
 	
 	public void setWorld(World world)
@@ -51,6 +56,38 @@ public class WorldDisplay extends Canvas
 		}
 	}
 	
+	public void drawZone(Graphics g1)
+	{
+		Graphics2D g = (Graphics2D) g1;
+		for(int h = 0; h < world.getHeight(); h++)
+		{
+			for(int w = 0; w < world.getWidth(); w++)
+			{
+				g.setColor(world.getZoneColor(w,h));
+				if(g.getColor() != Color.magenta)
+				{
+					g.fillRect(w, h, 1, 1);
+				}
+			}
+		}
+	}
+	
+	public void drawCave(Graphics g1)
+	{
+		Graphics2D g = (Graphics2D) g1;
+		for(int h = 0; h < world.getHeight(); h++)
+		{
+			for(int w = 0; w < world.getWidth(); w++)
+			{
+				g.setColor(world.getCaveColor(w,h));
+				if(g.getColor() != Color.magenta)
+				{
+					g.fillRect(w, h, 1, 1);
+				}
+			}
+		}
+	}
+	
 	public void drawConstructs(Graphics g1)
 	{
 		Graphics2D g = (Graphics2D) g1;
@@ -70,17 +107,28 @@ public class WorldDisplay extends Canvas
 	@Override
 	public void paint(Graphics g)
 	{
-		if(!showBiome)
-		{
-			drawWorld(g);
-		}
-		else
+		if(showBiome)
 		{
 			drawBiome(g);
 		}
+		else
+		{
+			drawWorld(g);
+		}
+		
+		if(showCave)
+		{
+			drawCave(g);
+		}
+		
 		if(showConstructs)
 		{
 			drawConstructs(g);
+		}
+		
+		if(showZone)
+		{
+			drawZone(g);
 		}
 		
 		g.setColor(Color.white);
