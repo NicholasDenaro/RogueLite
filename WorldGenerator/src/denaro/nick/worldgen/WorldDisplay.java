@@ -51,7 +51,10 @@ public class WorldDisplay extends Canvas
 			for(int w = 0; w < world.getWidth(); w++)
 			{
 				g.setColor(world.getBiomeColor(w,h));
-				g.fillRect(w, h, 1, 1);
+				if(g.getColor() != Color.magenta)
+				{
+					g.fillRect(w, h, 1, 1);
+				}
 			}
 		}
 	}
@@ -107,13 +110,11 @@ public class WorldDisplay extends Canvas
 	@Override
 	public void paint(Graphics g)
 	{
+		drawWorld(g);
+		
 		if(showBiome)
 		{
 			drawBiome(g);
-		}
-		else
-		{
-			drawWorld(g);
 		}
 		
 		if(showCave)

@@ -28,7 +28,8 @@ public class World
 	public static final String BIOME_GEN = "rdsdsddssdsdsssss";
 	public static final String CAVE_GEN = "rdddsdsssss";
 	
-	public Random rand = new Random();
+	public Random rand;
+	private long seed;
 	
 	private char[] landTypes;
 	private double[] freqs;
@@ -65,8 +66,21 @@ public class World
 		this.landTypes = landTypes;
 		this.freqs = frequencies;
 		this.colors = colors;
-		this.land = new char[width][height];
+		this.land = new char[this.width][this.height];
+		zones = new int[this.width][this.height];
 		
+		for(int h = 0; h < this.height; h++)
+		{
+			for(int w = 0; w < this.width; w++)
+			{
+				zones[w][h] = w + (h * this.width) + 1;
+			}
+		}
+		
+		numZones = this.width * this.height;
+		
+		seed = System.nanoTime();
+		rand = new Random(seed*492876847);
 		
 		for(int i = 0; i < technique.length(); i++)
 		{
@@ -80,14 +94,19 @@ public class World
 				break;
 				case 's':
 					smooth();
+					smoothZones();
 				break;
 				default:
 				break;
 			}
 		}
 		
+		for(int i = 0; i < 1; i++)
+		{
+			smoothZones();
+		}
+		
 		constructs = new char[this.width][this.height];
-		zones = new int[this.width][this.height];
 	}
 	
 	public void generate()
@@ -97,12 +116,29 @@ public class World
 
 		populate();
 		
-		createZones();
+		//createZones();
 	}
 	
 	public void generateBiomes()
 	{
 		biome=new World(16,16,BIOME_GEN,Biomes.BIOME_TYPES, Biomes.BIOME_FREQS, Biomes.BIOME_COLORS);
+		System.out.println("Number of zones: "+biome.countZones());
+	}
+	
+	private int countZones()
+	{
+		LinkedList<Integer> seen = new LinkedList<Integer>();
+		for(int h = 0; h < height; h++)
+		{
+			for(int w = 0; w < width; w++)
+			{
+				if(!seen.contains(zones[w][h]))
+				{
+					seen.push(zones[w][h]);
+				}
+			}
+		}
+		return seen.size();
 	}
 	
 	public void generateCaves()
@@ -242,19 +278,7 @@ public class World
 	}
 	
 	private int spreadZone(int x, int y, char b, int z)
-	{
-		/*if(!isInBounds(w, h) || zones[w][h] != 0 || biome.land[w][h] != b || isLandOfType(w,h,"owbmM"))
-		{
-			return;
-		}
-		
-		zones[w][h] = z;
-		
-		spreadZone(w ,h - 1, b, z);
-		spreadZone(w - 1, h, b, z);
-		spreadZone(w, h + 1, b, z);
-		spreadZone(w + 1, h, b, z);*/
-		
+	{		
 		boolean changed = true;
 		int count = 0;
 		
@@ -442,6 +466,10 @@ public class World
 	
 	public Color getBiomeColor(int w, int h)
 	{
+		if(isLandOfType(w,h,"owbmM"))
+		{
+			return Color.magenta;
+		}
 		return getBiomeColor(biome.land[w][h]);
 	}
 	
@@ -509,8 +537,8 @@ public class World
 	
 	public Color getZoneColor(int w, int h)
 	{
-		double percent = (zones[w][h] - 1) * 1.0 / numZones;
-		if(zones[w][h] == 0 )
+		double percent = (biome.zones[w][h] - 1) * 1.0 / biome.numZones;
+		if(biome.zones[w][h] == 0 )
 		{
 			return Color.magenta;
 		}
@@ -601,6 +629,45 @@ public class World
 		});
 	}
 	
+	public void smoothZones()
+	{
+		int[][] temp = new int[width][height]; // Remove the temp for the maze;
+		
+		applyAll((int w, int h) -> {
+			temp[w][h] = zones[w][h];
+			return 0;
+		});
+		
+		applyAll((int w, int h) -> {
+			double[] count = new double[numZones];
+			int total = 0;
+			for(int j = -1; j < 2; j++)
+			{
+				for(int i = -1; i < 2; i++)
+				{
+					if(!(w+i < 0 || h+j < 0 || w+i >= width || h+j >= height /*|| (i == j && i == 0)*/))
+					{
+						//count += temp[w+i][h+j] == 'l' ? 1 : 0;
+						count[temp[w+i][h+j] - 1]++;
+						//count += land[w+i][h+j] == 'l' ? 1 : 0; // eh
+						total++;
+					}
+				}
+			}
+			
+			int max = 0;
+			for(int i = 0; i < numZones; i++)
+			{
+				if(count[i] > count[max])
+					max = i;
+			}
+			
+			zones[w][h] = max + 1;
+			
+			return 0;
+		});
+	}
+	
 	private int indexOfType(char l)
 	{
 		for(int i = -0; i < landTypes.length; i++)
@@ -630,6 +697,7 @@ public class World
 	public void divide()
 	{
 		char[][] temp = new char[width*2][height*2];
+		int[][] tempZones = new int[width*2][height*2];
 		width *= 2;
 		height *= 2;
 		
@@ -638,11 +706,18 @@ public class World
 			return 0;
 		});
 		
+		applyAll((int w, int h) -> {
+			tempZones[w][h] = zones[w/2][h/2];
+			return 0;
+		});
+		
 		land = new char[width][height];
+		zones = new int[width][height];
 		
 		applyAll((int w, int h) -> {
 			//int count = 0;
 			double[] count = new double[landTypes.length];
+			double[] countZones = new double[numZones];
 			int total = 0;
 			for(int j = -1; j < 2; j++)
 			{
@@ -652,19 +727,22 @@ public class World
 					{
 						//count += temp[w+i][h+j] == 'l' ? 1 : 0;
 						count[indexOfType(temp[w+i][h+j])]++;
+						countZones[tempZones[w+i][h+j] - 1]++;
 						total++;
 					}
 				}
 			}
 			
 			double r = rand.nextDouble()*total;
+			double r2 = r;
 			double c = 0;
 			
 			count = smoothDensity(count);
+			//countZones = smoothDensity(countZones);
 			
-			double t = 0;
+			/*double t = 0;
 			for(int i = 0; i < count.length; i++)
-				t+=count[i];
+				t+=count[i];*/
 			
 			//System.out.println(t+":"+total);
 			
@@ -674,6 +752,16 @@ public class World
 				if(r<0)
 				{
 					land[w][h] = landTypes[i];
+					break;
+				}
+			}
+			
+			for(int i = 0; i < countZones.length; i++)
+			{
+				r2-=countZones[i];
+				if(r2<0)
+				{
+					zones[w][h] = i + 1;
 					break;
 				}
 			}
