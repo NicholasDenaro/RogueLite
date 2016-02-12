@@ -68,7 +68,10 @@ public class WorldFramer implements KeyListener, MouseMotionListener
 			display.showZone = !display.showZone;
 		}
 		
-		display.repaint();
+		if(!display.drawing)
+		{
+			display.repaint();
+		}
 	}
 
 	@Override

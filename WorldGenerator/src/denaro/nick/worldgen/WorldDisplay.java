@@ -13,6 +13,7 @@ public class WorldDisplay extends Canvas
 	public boolean showCave;
 	public boolean showConstructs;
 	public boolean showZone;
+	public boolean drawing;
 	
 	public WorldDisplay(World world)
 	{
@@ -23,6 +24,7 @@ public class WorldDisplay extends Canvas
 		showConstructs = true;
 		showZone = false;
 		
+		drawing = false;
 	}
 	
 	public void setWorld(World world)
@@ -110,6 +112,7 @@ public class WorldDisplay extends Canvas
 	@Override
 	public void paint(Graphics g)
 	{
+		drawing = true;
 		drawWorld(g);
 		
 		if(showBiome)
@@ -135,5 +138,8 @@ public class WorldDisplay extends Canvas
 		g.setColor(Color.white);
 		
 		g.drawString(WorldFramer.mouseX+", "+WorldFramer.mouseY, 0, 100);
+		g.drawString("biome: " + world.getBiome(WorldFramer.mouseX, WorldFramer.mouseY), 0, 112);
+		g.drawString("zone: " + world.getZone(WorldFramer.mouseX, WorldFramer.mouseY), 0, 124);
+		drawing = false;
 	}
 }
