@@ -47,6 +47,7 @@ public class WorldFramer implements KeyListener, MouseMotionListener
 			world = new World(4,4,World.WORLD_GEN,World.LAND_TYPES,World.WORLD_TYPE,World.COLORS);
 			world.generate();
 			display.setWorld(world);
+			display.repaint();
 		}
 		else if(ke.getKeyCode()==KeyEvent.VK_SPACE)
 		{

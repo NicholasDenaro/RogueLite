@@ -164,7 +164,7 @@ public class World
 
 		createCliffs();
 
-		// createCaves();
+		createStairs();
 
 		createTrees(new char[]{'D', 'N', 'F', 'J'},
 				new double[]{0, 0.0005, 0.05, 0.2});
@@ -231,7 +231,27 @@ public class World
 
 	public void createStairs()
 	{
-
+		for(int h = 1; h < height - 1; h++)
+		{
+			for(int w = 1; w < width - 1; w++)
+			{
+				boolean[][] c = new boolean[3][3];
+				for(int j = -1; j < 2; j++)
+				{
+					for(int i = -1; i < 2; i++)
+					{
+						char constr = constructs[w + i][h + j];
+						c[i + 1][j + 1] = (constr == 'C' || constr == 'S') && (land[w][h] != 'm' && land[w][h] != 'M');
+					}
+				}
+				
+				if((c[1][0] && c[1][1] && c[1][2] && !c[0][1] && !c[2][1])
+					|| (c[0][1] && c[1][1] && c[2][1] && !c[1][0] && !c[1][2]))
+				{
+					constructs[w][h] = 'S';
+				}
+			}
+		}
 	}
 
 	public void condenseZones()
@@ -591,6 +611,8 @@ public class World
 			return PINK;
 		if(l == 'C')
 			return DK_BROWN;
+		if(l == 'S')
+			return Color.white;
 		if(l == 'c')
 			return PINK;
 		if(l == 'R')
@@ -603,7 +625,7 @@ public class World
 
 	public Color getZoneColor(int w, int h)
 	{
-		double percent = (biome.zones[w][h] - 1) * 1.0 / biome.numZones;
+		double percent = (biome.zones[w][h] - 1) * 1.0 / biome.numZones * 4;
 		if(biome.zones[w][h] == 0)
 		{
 			return Color.magenta;
