@@ -15,6 +15,7 @@ public class WorldFramer implements KeyListener, MouseMotionListener
 	
 	public static int mouseX = 0;
 	public static int mouseY = 0;
+	public static boolean redraw = false;
 	
 	public WorldFramer(World w)
 	{
@@ -67,8 +68,12 @@ public class WorldFramer implements KeyListener, MouseMotionListener
 		{
 			display.showZone = !display.showZone;
 		}
+		else if(ke.getKeyCode()==KeyEvent.VK_M)
+		{
+			redraw = true;
+		}
 		
-		if(!display.drawing)
+		if(!display.drawing && !redraw)
 		{
 			display.repaint();
 		}
@@ -77,7 +82,10 @@ public class WorldFramer implements KeyListener, MouseMotionListener
 	@Override
 	public void keyReleased(KeyEvent ke)
 	{
-		
+		if(ke.getKeyCode()==KeyEvent.VK_M)
+		{
+			redraw = false;
+		}
 	}
 
 	@Override
@@ -91,7 +99,10 @@ public class WorldFramer implements KeyListener, MouseMotionListener
 	{
 		mouseX = me.getX();
 		mouseY = me.getY();
-		display.repaint();
+		if(redraw)
+		{
+			display.repaint();
+		}
 	}
 
 }

@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 
 public class WorldDisplay extends Canvas
 {
@@ -14,6 +15,12 @@ public class WorldDisplay extends Canvas
 	public boolean showConstructs;
 	public boolean showZone;
 	public boolean drawing;
+	
+	private BufferedImage land;
+	private BufferedImage biome;
+	private BufferedImage construct;
+	private BufferedImage cave;
+	private BufferedImage zone;
 	
 	public WorldDisplay(World world)
 	{
@@ -30,6 +37,11 @@ public class WorldDisplay extends Canvas
 	public void setWorld(World world)
 	{
 		this.world = world;
+		land = null;
+		biome = null;
+		construct = null;
+		cave = null;
+		zone = null;
 	}
 	
 	public void drawWorld(Graphics g1)
@@ -113,26 +125,51 @@ public class WorldDisplay extends Canvas
 	public void paint(Graphics g)
 	{
 		drawing = true;
-		drawWorld(g);
+		if(land == null)
+		{
+			land = new BufferedImage(world.getWidth(),world.getHeight(),BufferedImage.TYPE_INT_ARGB);
+			drawWorld(land.getGraphics());
+		}
+		g.drawImage(land, 0, 0, null);
 		
 		if(showBiome)
 		{
-			drawBiome(g);
+			if(biome == null)
+			{
+				biome = new BufferedImage(world.getWidth(),world.getHeight(),BufferedImage.TYPE_INT_ARGB);
+				drawBiome(biome.getGraphics());
+			}
+			g.drawImage(biome, 0, 0, null);
 		}
 		
 		if(showCave)
 		{
-			drawCave(g);
+			if(cave == null)
+			{
+				cave = new BufferedImage(world.getWidth(),world.getHeight(),BufferedImage.TYPE_INT_ARGB);
+				drawCave(cave.getGraphics());
+			}
+			g.drawImage(cave, 0, 0, null);
 		}
 		
 		if(showConstructs)
 		{
-			drawConstructs(g);
+			if(construct == null)
+			{
+				construct = new BufferedImage(world.getWidth(),world.getHeight(),BufferedImage.TYPE_INT_ARGB);
+				drawConstructs(construct.getGraphics());
+			}
+			g.drawImage(construct, 0, 0, null);
 		}
 		
 		if(showZone)
 		{
-			drawZone(g);
+			if(zone == null)
+			{
+				zone = new BufferedImage(world.getWidth(),world.getHeight(),BufferedImage.TYPE_INT_ARGB);
+				drawZone(zone.getGraphics());
+			}
+			g.drawImage(zone, 0, 0, null);
 		}
 		
 		g.setColor(Color.white);
