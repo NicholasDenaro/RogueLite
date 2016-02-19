@@ -19,9 +19,9 @@ public class World
 			Color.green.darker().darker(), Color.green.darker(), Color.green,
 			Color.gray.darker(), Color.gray};
 	
-	public static final char[]  ROAD_TYPES = {'L','l','m','M','t','T'};
+	public static final char[]  ROAD_TYPES = {'1','2','3','4','5','6'};
 	public static final double[]  ROAD_FREQS = {0.4,0.0,0.075,0.05,0.075,0.4};
-	public static final Color[] ROAD_COLORS = {Color.black,World.DK_BROWN,World.BROWN,Color.lightGray.darker(),World.PINK,Color.white};
+	public static final Color[] ROAD_COLORS = {Color.black,World.DK_BROWN,World.BROWN,Color.lightGray,World.PINK,Color.white};
 	
 	public static final int NUM_VILLAGES = 2;
 	public static final int MIN_VILLAGE_RADIUS = 20;
@@ -323,6 +323,25 @@ public class World
 				}
 				char constr = constructs[w + i][h + j];
 				c[i + 1][j + 1] = (constr == 'C' || constr == 'S') && (land[w][h] != 'm' && land[w][h] != 'M');
+			}
+		}
+		
+		return c;
+	}
+	
+	public boolean[][] roadAdjacency(int w, int h)
+	{
+		boolean[][] c = new boolean[3][3];
+		for(int j = -1; j < 2; j++)
+		{
+			for(int i = -1; i < 2; i++)
+			{
+				if(!isInBounds(w + i, h + j))
+				{
+					continue;
+				}
+				char constr = road.land[w + i][h + j];
+				c[i + 1][j + 1] = constr == '4';
 			}
 		}
 		
@@ -803,7 +822,7 @@ public class World
 	
 	public Color getRoadColor(int w, int h)
 	{
-		if(!isLandOfType(w, h, "owbmM") && road.isLandOfType(w, h, "M"))
+		if(!isLandOfType(w, h, "owbmM") && road.isLandOfType(w, h, "4"))
 		{
 			return getRoadColor(road.land[w][h]);
 		}
@@ -1189,6 +1208,11 @@ public class World
 		return constructs[w][h];
 	}
 
+	public char getRoad(int w, int h)
+	{
+		return road.land[w][h];
+	}
+	
 	public char getBiome(int w, int h)
 	{
 		return biome.land[w][h];
