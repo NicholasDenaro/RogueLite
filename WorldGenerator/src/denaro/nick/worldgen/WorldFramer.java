@@ -44,20 +44,16 @@ public class WorldFramer implements KeyListener, MouseMotionListener
 		if(ke.getKeyCode()==KeyEvent.VK_ENTER)
 		{
 			System.out.println("---NEW WORLD---");
-			world = new World(4,4,World.WORLD_GEN,World.LAND_TYPES,World.WORLD_TYPE,World.COLORS);
+			world = new World(World.STARTING_SIZE,World.WORLD_GEN,World.LAND_TYPES,World.WORLD_TYPE,World.COLORS, World.NUM_VILLAGES, World.MIN_VILLAGE_RADIUS, World.VAR_VILLAGE_RADIUS);
 			world.generate();
 			display.setWorld(world);
 			display.repaint();
 		}
-		else if(ke.getKeyCode()==KeyEvent.VK_SPACE)
-		{
-			world.smooth();
-		}
-		else if(ke.getKeyCode()==KeyEvent.VK_SHIFT)
+		else if(ke.getKeyCode()==KeyEvent.VK_B)
 		{
 			display.showBiome = !display.showBiome;
 		}
-		else if(ke.getKeyCode()==KeyEvent.VK_Z)
+		else if(ke.getKeyCode()==KeyEvent.VK_C)
 		{
 			display.showCave = !display.showCave;
 		}
@@ -65,9 +61,13 @@ public class WorldFramer implements KeyListener, MouseMotionListener
 		{
 			display.showConstructs = !display.showConstructs;
 		}
-		else if(ke.getKeyCode()==KeyEvent.VK_X)
+		else if(ke.getKeyCode()==KeyEvent.VK_R)
 		{
-			display.showZone = !display.showZone;
+			display.showRoads = !display.showRoads;
+		}
+		else if(ke.getKeyCode()==KeyEvent.VK_Z)
+		{
+			display.showZones = !display.showZones;
 		}
 		else if(ke.getKeyCode()==KeyEvent.VK_M)
 		{

@@ -13,7 +13,8 @@ public class WorldDisplay extends Canvas
 	public boolean showBiome;
 	public boolean showCave;
 	public boolean showConstructs;
-	public boolean showZone;
+	public boolean showZones;
+	public boolean showRoads;
 	public boolean drawing;
 	
 	private BufferedImage land;
@@ -21,6 +22,7 @@ public class WorldDisplay extends Canvas
 	private BufferedImage construct;
 	private BufferedImage cave;
 	private BufferedImage zone;
+	private BufferedImage road;
 	
 	public WorldDisplay(World world)
 	{
@@ -29,7 +31,8 @@ public class WorldDisplay extends Canvas
 		showBiome = false;
 		showCave = true;
 		showConstructs = true;
-		showZone = false;
+		showZones = false;
+		showRoads = false;
 		
 		drawing = false;
 	}
@@ -42,6 +45,7 @@ public class WorldDisplay extends Canvas
 		construct = null;
 		cave = null;
 		zone = null;
+		road = null;
 	}
 	
 	public void drawWorld(Graphics g1)
@@ -105,6 +109,22 @@ public class WorldDisplay extends Canvas
 		}
 	}
 	
+	public void drawRoads(Graphics g1)
+	{
+		Graphics2D g = (Graphics2D) g1;
+		for(int h = 0; h < world.getHeight(); h++)
+		{
+			for(int w = 0; w < world.getWidth(); w++)
+			{
+				g.setColor(world.getRoadColor(w,h));
+				if(g.getColor() != Color.magenta)
+				{
+					g.fillRect(w, h, 1, 1);
+				}
+			}
+		}
+	}
+	
 	public void drawConstructs(Graphics g1)
 	{
 		Graphics2D g = (Graphics2D) g1;
@@ -152,6 +172,16 @@ public class WorldDisplay extends Canvas
 			g.drawImage(cave, 0, 0, null);
 		}
 		
+		if(showRoads)
+		{
+			if(road == null)
+			{
+				road = new BufferedImage(world.getWidth(),world.getHeight(),BufferedImage.TYPE_INT_ARGB);
+				drawRoads(road.getGraphics());
+			}
+			g.drawImage(road, 0, 0, null);
+		}
+		
 		if(showConstructs)
 		{
 			if(construct == null)
@@ -162,7 +192,7 @@ public class WorldDisplay extends Canvas
 			g.drawImage(construct, 0, 0, null);
 		}
 		
-		if(showZone)
+		if(showZones)
 		{
 			if(zone == null)
 			{

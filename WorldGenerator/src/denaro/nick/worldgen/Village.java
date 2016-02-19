@@ -9,8 +9,11 @@ public class Village
 	
 	public static final int MIN_SPACE_BETWEEN_STRUCTURES = 3;
 	
-	public static final int MIN_DENSITY = 10;
-	public static final int VAR_DENSITY = 20;
+	public static final int MIN_DENSITY = 5;
+	public static final int VAR_DENSITY = 10;
+	
+	//public static final int MIN_DENSITY = 200;
+	//public static final int VAR_DENSITY = 300;
 	
 	public static final int MAX_TRY_COUNT = 10;
 	
@@ -18,7 +21,7 @@ public class Village
 	private int y;
 	private int radius;
 	
-	public Village(World world, int x, int y, int minRadius, int varRadius)
+	public Village(World world, int x, int y, int minRadius, int varRadius, int minDensity, int varDensity)
 	{
 		this.x = x;
 		this.y = y;
@@ -44,14 +47,14 @@ public class Village
 		
 		setInRadius(world, "mMbwo", -1, 'V');
 		
-		int density = MIN_DENSITY + world.rand.nextInt(VAR_DENSITY);
+		int density = minDensity + world.rand.nextInt(varDensity);
 		
 		for(int i = 0; i < density; i++)
 		{
 			spawnBuilding(world);
 		}
 		
-		setInRadius(world, "V", 0, (char) 0);
+		//setInRadius(world, "V", 0, (char) 0);
 		
 		/*for(int j = -radius; j < radius; j++)
 		{

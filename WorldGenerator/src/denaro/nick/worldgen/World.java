@@ -18,8 +18,18 @@ public class World
 			Color.green.darker().darker().darker(),
 			Color.green.darker().darker(), Color.green.darker(), Color.green,
 			Color.gray.darker(), Color.gray};
+	
+	public static final char[]  ROAD_TYPES = {'L','l','m','M','t','T'};
+	public static final double[]  ROAD_FREQS = {0.4,0.0,0.075,0.05,0.075,0.4};
+	public static final Color[] ROAD_COLORS = {Color.black,World.DK_BROWN,World.BROWN,Color.lightGray.darker(),World.PINK,Color.white};
+	
+	public static final int NUM_VILLAGES = 2;
 	public static final int MIN_VILLAGE_RADIUS = 20;
-	public static final int VAR_VILLAGE_RADIUS = 30;
+	public static final int VAR_VILLAGE_RADIUS = 10;
+	
+	//public static final int NUM_VILLAGES = 1;
+	//public static final int MIN_VILLAGE_RADIUS = 200;
+	//public static final int VAR_VILLAGE_RADIUS = 300;
 
 	public static final double[] WORLD_TYPE = NORMAL_WORLD;
 
@@ -34,22 +44,27 @@ public class World
 			.darker().darker();
 	public static final Color TAN = mixColor(Color.white, BROWN, 0.9);
 
+	public static final int STARTING_SIZE = 4;
 	public static final String WORLD_GEN = "rddsddsddssdsdsssss";
 	public static final String BIOME_GEN = "rdsdszddssdsdsssssZ";
 	public static final String BIG_BIOME_GEN = "rdszdsdsdsddssdsdsssssZ";
 	public static final String CAVE_GEN = "rdddsdsssss";
+	public static final String ROAD_GEN = "rdddsdsssss";
 
 	public Random rand;
 	private long seed;
 
+	private String generation;
 	private char[] landTypes;
 	private double[] freqs;
 	private Color[] colors;
 	private World biome;
 	private World cave;
+	private World road;
 
 	private char[][] land;
 
+	private int startSize;
 	private int width;
 	private int height;
 
@@ -57,29 +72,34 @@ public class World
 
 	private int[][] zones;
 	private int numZones;
+	
+	private int numVillages;
+	private int minVillageRadius;
+	private int varVillageRadius;
 
 	public static void main(String[] args)
 	{
-		System.out.println(-1 / 2);
-
-		World world = new World(4, 4, WORLD_GEN, LAND_TYPES, WORLD_TYPE,
-				COLORS);
+		World world = new World(STARTING_SIZE, WORLD_GEN, LAND_TYPES, WORLD_TYPE, COLORS, NUM_VILLAGES, MIN_VILLAGE_RADIUS, VAR_VILLAGE_RADIUS);
 
 		world.generate();
 
 		new WorldFramer(world);
-
 	}
 
-	public World(int width, int height, String technique, char[] landTypes,
-			double[] frequencies, Color[] colors)
+	public World(int startSize, String technique, char[] landTypes,
+			double[] frequencies, Color[] colors, int numVillages, int minVillageRadius, int varVillageRadius)
 	{
-		this.width = width;
-		this.height = height;
+		this.startSize = startSize;
+		this.width = startSize;
+		this.height = startSize;
+		this.generation = technique;
 		this.landTypes = landTypes;
 		this.freqs = frequencies;
 		this.colors = colors;
 		this.land = new char[this.width][this.height];
+		this.numVillages = numVillages;
+		this.minVillageRadius = minVillageRadius;
+		this.varVillageRadius = varVillageRadius;
 		zones = null;// new int[this.width][this.height];
 
 		seed = System.nanoTime();
@@ -112,6 +132,27 @@ public class World
 
 		constructs = new char[this.width][this.height];
 	}
+	
+	private int calcWorldSizeDiff(int startSize, String gen1, String gen2)
+	{
+		int count = 0;
+		for(int i = 0; i < gen1.length(); i++)
+		{
+			if(gen1.charAt(i) == 'd')
+			{
+				count++;
+			}
+		}
+		for(int i = 0; i < gen2.length(); i++)
+		{
+			if(gen2.charAt(i) == 'd')
+			{
+				count--;
+			}
+		}
+		
+		return (int) (count > 0 ? startSize * Math.pow(2, count) : startSize / Math.pow(2, count));
+	}
 
 	public void generate()
 	{
@@ -121,6 +162,9 @@ public class World
 		System.out.println("Generating caves");
 		generateCaves();
 
+		System.out.println("Generating roads");
+		generateRoads();
+		
 		System.out.println("Populating world");
 		populate();
 
@@ -129,8 +173,8 @@ public class World
 
 	public void generateBiomes()
 	{
-		biome = new World(16, 16, BIOME_GEN, Biomes.BIOME_TYPES,
-				Biomes.BIOME_FREQS, Biomes.BIOME_COLORS);
+		biome = new World(calcWorldSizeDiff(startSize,generation,BIOME_GEN), BIOME_GEN, Biomes.BIOME_TYPES,
+				Biomes.BIOME_FREQS, Biomes.BIOME_COLORS, 0, 0, 0);
 		// biome=new World(4,4,BIG_BIOME_GEN,Biomes.BIOME_TYPES,
 		// Biomes.BIOME_FREQS, Biomes.BIOME_COLORS);
 		System.out.println("Number of zones: " + biome.countZones());
@@ -154,27 +198,40 @@ public class World
 
 	public void generateCaves()
 	{
-		cave = new World(64, 64, CAVE_GEN, Cave.CAVE_TYPES, Cave.CAVE_FREQS,
-				Cave.CAVE_COLORS);
+		cave = new World(calcWorldSizeDiff(startSize,generation,CAVE_GEN), CAVE_GEN, Cave.CAVE_TYPES, Cave.CAVE_FREQS,
+				Cave.CAVE_COLORS, 0, 0, 0);
+	}
+	
+	public void generateRoads()
+	{
+		road = new World(calcWorldSizeDiff(startSize,generation,CAVE_GEN), ROAD_GEN, ROAD_TYPES, ROAD_FREQS,
+				ROAD_COLORS, 0, 0, 0);
 	}
 
 	public void populate()
-	{
-		createVillages(0.2);
+	{		
+		createVillages();
 
 		createCliffs();
 
 		createStairs();
+		
+		createCaveEntrances();
 
 		createTrees(new char[]{'D', 'N', 'F', 'J'},
 				new double[]{0, 0.0005, 0.05, 0.2});
+		
+		removeRoadsOutsideVillages();
+		
+		removeVillageOutlines();
 	}
 
-	public void createVillages(double villageRatio)
+	public void createVillages()
 	{
-		int numPlains = countLandType('p') + countLandType('h');
+		//int numPlains = countLandType('p') + countLandType('h');
 
-		while(numPlains * 1.0 / this.width / this.height > villageRatio)
+		//while(numPlains * 1.0 / this.width / this.height > villageRatio)
+		for(int i = 0; i < numVillages; i++)
 		{
 			int w = 0;
 			int h = 0;
@@ -185,8 +242,32 @@ public class World
 				w = rand.nextInt(this.width);
 				h = rand.nextInt(this.height);
 			}
-			new Village(this, w, h, MIN_VILLAGE_RADIUS, VAR_VILLAGE_RADIUS);
-			numPlains -= villageRatio * this.width * this.height;
+			new Village(this, w, h, minVillageRadius, varVillageRadius, Village.MIN_DENSITY, Village.VAR_DENSITY);
+			//numPlains -= villageRatio * this.width * this.height;
+		}
+	}
+	
+	public void removeRoadsOutsideVillages()
+	{
+		for(int h = 0; h < height; h++)
+		{
+			for(int w = 0; w < width; w++)
+			{
+				if(!isConstructOfType(w, h, "VFWD"))
+					road.land[w][h] = (char) 0;
+			}
+		}
+	}
+	
+	public void removeVillageOutlines()
+	{
+		for(int h = 0; h < height; h++)
+		{
+			for(int w = 0; w < width; w++)
+			{
+				if(constructs[w][h] == 'V')
+					constructs[w][h] = (char) 0;
+			}
 		}
 	}
 
@@ -229,29 +310,180 @@ public class World
 		}
 	}
 
-	public void createStairs()
+	public boolean[][] cliffStairAdjacency(int w, int h)
 	{
+		boolean[][] c = new boolean[3][3];
+		for(int j = -1; j < 2; j++)
+		{
+			for(int i = -1; i < 2; i++)
+			{
+				if(!isInBounds(w + i, h + j))
+				{
+					continue;
+				}
+				char constr = constructs[w + i][h + j];
+				c[i + 1][j + 1] = (constr == 'C' || constr == 'S') && (land[w][h] != 'm' && land[w][h] != 'M');
+			}
+		}
+		
+		return c;
+	}
+	
+	public void createCaveEntrances()
+	{
+		LinkedList<Integer> cliffs = new LinkedList<Integer>();
+		//gather the cliffs
 		for(int h = 1; h < height - 1; h++)
 		{
 			for(int w = 1; w < width - 1; w++)
 			{
+				if(cave.land[w][h] != 'M' || land[w][h] != 'm')
+				{
+					continue;
+				}
 				boolean[][] c = new boolean[3][3];
 				for(int j = -1; j < 2; j++)
 				{
 					for(int i = -1; i < 2; i++)
 					{
+						if(!isInBounds(w + i, h + j))
+						{
+							continue;
+						}
 						char constr = constructs[w + i][h + j];
-						c[i + 1][j + 1] = (constr == 'C' || constr == 'S') && (land[w][h] != 'm' && land[w][h] != 'M');
+						c[i + 1][j + 1] = constr == 'C';
 					}
 				}
+				
+				boolean[][] c2 = new boolean[3][3];
+				for(int j = -1; j < 2; j++)
+				{
+					for(int i = -1; i < 2; i++)
+					{
+						if(!isInBounds(w + i, h + j))
+						{
+							continue;
+						}
+						c2[i + 1][j + 1] = land[w + i][h + j] == 'm' && cave.isLandOfType(w + i, h + j, "mM");
+					}
+				}
+				
+				if((c[1][0] && c[1][1] && c[1][2] && !c[0][1] && !c[2][1] && (c2[0][1] || c2[2][1]))
+					|| (c[0][1] && c[1][1] && c[2][1] && !c[1][0] && !c[1][2] && (c2[1][0] || c2[1][2])))
+				{
+					//constructs[w][h] = 'S';
+					cliffs.push(w + h * width);
+				}
+			}
+		}
+		
+		//select some to place entrances
+		System.out.println("number of places: " + cliffs.size());
+		
+		if(cliffs.isEmpty())
+		{
+			return;
+		}
+		
+		int minStairs = (int) (cliffs.size() * 0.1);
+		
+		int stairCount = minStairs + rand.nextInt((int) (minStairs * 0.5));
+		
+		LinkedList<Integer> stairs = new LinkedList<Integer>();
+		
+		for(int i = 0; i < stairCount; i++)
+		{
+			int c = rand.nextInt(cliffs.size());
+			
+			int pos = cliffs.remove(c);
+			constructs[pos % width][pos / width] = 'E';
+			stairs.push(pos);
+		}
+		
+		//TODO: search for caves, that may be inaccessible without a new entrance and add a path to it
+		
+	}
+	
+	public void createStairs()
+	{
+		LinkedList<Integer> cliffs = new LinkedList<Integer>();
+		//gather the cliffs
+		for(int h = 1; h < height - 1; h++)
+		{
+			for(int w = 1; w < width - 1; w++)
+			{
+				boolean[][] c = cliffStairAdjacency(w, h);
 				
 				if((c[1][0] && c[1][1] && c[1][2] && !c[0][1] && !c[2][1])
 					|| (c[0][1] && c[1][1] && c[2][1] && !c[1][0] && !c[1][2]))
 				{
-					constructs[w][h] = 'S';
+					//constructs[w][h] = 'S';
+					cliffs.push(w + h * width);
 				}
 			}
 		}
+		
+		//select some to place stairs
+		
+		int minStairs = (int) (cliffs.size() * 0.1);
+		
+		int stairCount = minStairs + rand.nextInt((int) (minStairs * 0.5));
+		
+		LinkedList<Integer> stairs = new LinkedList<Integer>();
+		
+		for(int i = 0; i < stairCount; i++)
+		{
+			int c = rand.nextInt(cliffs.size());
+			
+			int pos = cliffs.remove(c);
+			constructs[pos % width][pos / width] = 'S';
+			stairs.push(pos);
+		}
+		
+		//expand some of the stairs if possible
+		while(!stairs.isEmpty())
+		{
+			int pos = stairs.pop();
+			int w = pos % width;
+			int h = pos / width;
+			
+			boolean[][] c = cliffStairAdjacency(w, h);
+			
+			if(c[1][0] && c[1][1] && c[1][2] && !c[0][1] && !c[2][1]) // |
+			{
+				boolean[][] cUp = cliffStairAdjacency(w, h - 1);
+				boolean[][] cDown = cliffStairAdjacency(w, h + 1);
+				
+				if(cUp[1][0] && cUp[1][1] && cUp[1][2] && !cUp[0][1] && !cUp[2][1]) // |
+				{
+					constructs[w][h - 1] = 'S';
+				}
+				if(cDown[1][0] && cDown[1][1] && cDown[1][2] && !cDown[0][1] && !cDown[2][1]) // |
+				{
+					constructs[w][h + 1] = 'S';
+				}
+			}
+			else if(c[0][1] && c[1][1] && c[2][1] && !c[1][0] && !c[1][2]) // -
+			{
+				boolean[][] cLeft = cliffStairAdjacency(w - 1, h);
+				boolean[][] cRight = cliffStairAdjacency(w + 1, h);
+				
+				if(cLeft[0][1] && cLeft[1][1] && cLeft[2][1] && !cLeft[1][0] && !cLeft[1][2]) // -
+				{
+					constructs[w - 1][h] = 'S';
+				}
+				if(cRight[0][1] && cRight[1][1] && cRight[2][1] && !cRight[1][0] && !cRight[1][2]) // -
+				{
+					constructs[w + 1][h] = 'S';
+				}
+			}
+			
+			constructs[pos % width][pos / width] = 'S';
+		}
+		
+		
+		//TODO: search for places, like houses, that may be inaccessible without stairs and add a path to it
+		
 	}
 
 	public void condenseZones()
@@ -568,6 +800,29 @@ public class World
 		}
 		return Color.magenta;
 	}
+	
+	public Color getRoadColor(int w, int h)
+	{
+		if(!isLandOfType(w, h, "owbmM") && road.isLandOfType(w, h, "M"))
+		{
+			return getRoadColor(road.land[w][h]);
+		}
+		else
+		{
+			return Color.magenta;
+		}
+	}
+	
+	public Color getRoadColor(char l)
+	{
+		for(int i = 0; i < road.landTypes.length; i++)
+		{
+			if(road.landTypes[i] == l)
+				return road.colors[i];
+		}
+		return Color.magenta;
+	}
+
 
 	public Color getCaveColor(int w, int h)
 	{
