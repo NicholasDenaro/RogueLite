@@ -23,13 +23,7 @@ public class World
 	public static final double[]  ROAD_FREQS = {0.4,0.0,0.075,0.05,0.075,0.4};
 	public static final Color[] ROAD_COLORS = {Color.black,World.DK_BROWN,World.BROWN,Color.lightGray,World.PINK,Color.white};
 	
-	public static final int NUM_VILLAGES = 2;
-	public static final int MIN_VILLAGE_RADIUS = 20;
-	public static final int VAR_VILLAGE_RADIUS = 10;
-	
-	//public static final int NUM_VILLAGES = 1;
-	//public static final int MIN_VILLAGE_RADIUS = 200;
-	//public static final int VAR_VILLAGE_RADIUS = 300;
+	public static final int NUM_VILLAGES = 1;
 
 	public static final double[] WORLD_TYPE = NORMAL_WORLD;
 
@@ -79,7 +73,7 @@ public class World
 
 	public static void main(String[] args)
 	{
-		World world = new World(STARTING_SIZE, WORLD_GEN, LAND_TYPES, WORLD_TYPE, COLORS, NUM_VILLAGES, MIN_VILLAGE_RADIUS, VAR_VILLAGE_RADIUS);
+		World world = new World(STARTING_SIZE, WORLD_GEN, LAND_TYPES, WORLD_TYPE, COLORS, NUM_VILLAGES, Village.VILLAGE_TYPE.minRadius, Village.VILLAGE_TYPE.varRadius);
 
 		world.generate();
 
@@ -213,8 +207,6 @@ public class World
 		createVillages();
 
 		createCliffs();
-
-		createStairs();
 		
 		createCaveEntrances();
 
@@ -222,6 +214,8 @@ public class World
 				new double[]{0, 0.0005, 0.05, 0.2});
 		
 		removeRoadsOutsideVillages();
+		
+		createStairs();
 		
 		removeVillageOutlines();
 	}
@@ -242,7 +236,7 @@ public class World
 				w = rand.nextInt(this.width);
 				h = rand.nextInt(this.height);
 			}
-			new Village(this, w, h, minVillageRadius, varVillageRadius, Village.MIN_DENSITY, Village.VAR_DENSITY);
+			new Village(this, w, h, Village.VILLAGE_TYPE);
 			//numPlains -= villageRatio * this.width * this.height;
 		}
 	}
@@ -253,7 +247,7 @@ public class World
 		{
 			for(int w = 0; w < width; w++)
 			{
-				if(!isConstructOfType(w, h, "VFWD"))
+				if(!isConstructOfType(w, h, "VFWDC"))
 					road.land[w][h] = (char) 0;
 			}
 		}
@@ -348,6 +342,25 @@ public class World
 		return c;
 	}
 	
+	public boolean[][] villageAdjacency(int w, int h)
+	{
+		boolean[][] c = new boolean[3][3];
+		for(int j = -1; j < 2; j++)
+		{
+			for(int i = -1; i < 2; i++)
+			{
+				if(!isInBounds(w + i, h + j))
+				{
+					continue;
+				}
+				char constr = constructs[w + i][h + j];
+				c[i + 1][j + 1] = constr == 'V';
+			}
+		}
+		
+		return c;
+	}
+	
 	public void createCaveEntrances()
 	{
 		LinkedList<Integer> cliffs = new LinkedList<Integer>();
@@ -424,6 +437,34 @@ public class World
 	}
 	
 	public void createStairs()
+	{
+		for(int h = 1; h < height - 1; h++)
+		{
+			for(int w = 1; w < width - 1; w++)
+			{
+				if(constructs[w][h] == 'C' && road.land[w][h] =='4')
+				{
+					constructs[w][h] = (char) 0;
+					boolean[][] v = villageAdjacency(w, h);
+					boolean adjacent = false;
+					for(int i = 0 ; i < 9 && !adjacent; i++)
+					{
+						if(v[i % 3][i / 3])
+						{
+							adjacent = true;
+						}
+					}
+					
+					if(!adjacent)
+					{
+						road.land[w][h] = (char) 0;
+					}
+				}
+			}
+		}
+	}
+	
+	public void createStairsOLD()
 	{
 		LinkedList<Integer> cliffs = new LinkedList<Integer>();
 		//gather the cliffs

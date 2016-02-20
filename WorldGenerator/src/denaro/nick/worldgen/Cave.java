@@ -299,7 +299,7 @@ public class Cave
 		return new int[]{x + (len == 0 ? ords[len] * length : 0), y + (len == 0 ? 0 : ords[len] * length)};
 	}
 	
-	public int[] directionToOrdinals(Direction direction)
+	public static int[] directionToOrdinals(Direction direction)
 	{
 		switch(direction)
 		{

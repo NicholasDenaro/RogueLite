@@ -44,7 +44,7 @@ public class WorldFramer implements KeyListener, MouseMotionListener
 		if(ke.getKeyCode()==KeyEvent.VK_ENTER)
 		{
 			System.out.println("---NEW WORLD---");
-			world = new World(World.STARTING_SIZE,World.WORLD_GEN,World.LAND_TYPES,World.WORLD_TYPE,World.COLORS, World.NUM_VILLAGES, World.MIN_VILLAGE_RADIUS, World.VAR_VILLAGE_RADIUS);
+			world = new World(World.STARTING_SIZE,World.WORLD_GEN,World.LAND_TYPES,World.WORLD_TYPE,World.COLORS, World.NUM_VILLAGES, Village.VILLAGE_TYPE.minRadius, Village.VILLAGE_TYPE.varRadius);
 			world.generate();
 			display.setWorld(world);
 			display.repaint();
