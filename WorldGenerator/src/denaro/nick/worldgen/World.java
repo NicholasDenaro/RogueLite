@@ -71,14 +71,23 @@ public class World
 	private int minVillageRadius;
 	private int varVillageRadius;
 
-	public static void main(String[] args)
+	public static World getWorld()
+	{
+		World world = new World(STARTING_SIZE, WORLD_GEN, LAND_TYPES, WORLD_TYPE, COLORS, NUM_VILLAGES, Village.VILLAGE_TYPE.minRadius, Village.VILLAGE_TYPE.varRadius);
+		
+		world.generate();
+		
+		return world;
+	}
+	
+	/*public static void main(String[] args)
 	{
 		World world = new World(STARTING_SIZE, WORLD_GEN, LAND_TYPES, WORLD_TYPE, COLORS, NUM_VILLAGES, Village.VILLAGE_TYPE.minRadius, Village.VILLAGE_TYPE.varRadius);
 
 		world.generate();
 
 		new WorldFramer(world);
-	}
+	}*/
 
 	public World(int startSize, String technique, char[] landTypes,
 			double[] frequencies, Color[] colors, int numVillages, int minVillageRadius, int varVillageRadius)
@@ -282,7 +291,14 @@ public class World
 							if(w + i < 0 || w + i >= width || h + j < 0
 									|| h + j >= height)
 								continue;
-							if(ind > "pPhHmM".indexOf(land[w + i][h + j]))
+							if(ind > "pPhHmM".indexOf(land[w + i][h + j]) && (constructs[w][h] == 0 || constructs[w][h] == 'V'))
+							{
+								if(land[w][h] != 'M' || !isCaveOfType(w,h,"mM"))
+								{
+									constructs[w][h] = 'C';
+								}
+							}
+							if(isLandOfType(w,h,"mM") && !isCaveOfType(w,h,"mM") && isCaveOfType(w + i,h + j,"mM"))
 							{
 								constructs[w][h] = 'C';
 							}
@@ -417,19 +433,23 @@ public class World
 			return;
 		}
 		
-		int minStairs = (int) (cliffs.size() * 0.1);
+		int minStairs = (int) (cliffs.size() * 0.2);
 		
-		int stairCount = minStairs + rand.nextInt((int) (minStairs * 0.5));
-		
-		LinkedList<Integer> stairs = new LinkedList<Integer>();
-		
-		for(int i = 0; i < stairCount; i++)
+		if(minStairs > 0)
 		{
-			int c = rand.nextInt(cliffs.size());
+		
+			int stairCount = minStairs + rand.nextInt((int) (minStairs * 0.5));
 			
-			int pos = cliffs.remove(c);
-			constructs[pos % width][pos / width] = 'E';
-			stairs.push(pos);
+			LinkedList<Integer> stairs = new LinkedList<Integer>();
+			
+			for(int i = 0; i < stairCount; i++)
+			{
+				int c = rand.nextInt(cliffs.size());
+				
+				int pos = cliffs.remove(c);
+				constructs[pos % width][pos / width] = 'E';
+				stairs.push(pos);
+			}
 		}
 		
 		//TODO: search for caves, that may be inaccessible without a new entrance and add a path to it
@@ -442,7 +462,7 @@ public class World
 		{
 			for(int w = 1; w < width - 1; w++)
 			{
-				if(constructs[w][h] == 'C' && road.land[w][h] =='4')
+				if(constructs[w][h] == 'C' && road.land[w][h] =='4' && land[w][h] != 'm' && land[w][h] != 'M')
 				{
 					constructs[w][h] = (char) 0;
 					boolean[][] v = villageAdjacency(w, h);
@@ -1257,6 +1277,11 @@ public class World
 	public char getBiome(int w, int h)
 	{
 		return biome.land[w][h];
+	}
+	
+	public char getCave(int w, int h)
+	{
+		return cave.land[w][h];
 	}
 	
 	public int getZone(int w, int h)

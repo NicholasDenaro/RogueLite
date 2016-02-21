@@ -30,6 +30,11 @@ public class WorldFramer implements KeyListener, MouseMotionListener
 		display.addKeyListener(this);
 		display.addMouseMotionListener(this);
 	}
+	
+	public void addDisplayMouseMotionListener(MouseMotionListener listener)
+	{
+		display.addMouseMotionListener(listener);
+	}
 
 	@Override
 	public void keyTyped(KeyEvent ke)

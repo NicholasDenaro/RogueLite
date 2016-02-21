@@ -8,7 +8,7 @@ public class Village
 {
 	public static final HouseOptions SMALL_HOUSES = new HouseOptions(HouseOptions.MIN_BUILDING_WIDTH, HouseOptions.MIN_BUILDING_HEIGHT, HouseOptions.VAR_BUILDING_WIDTH, HouseOptions.VAR_BUILDING_HEIGHT);
 	public static final VillageOptions SMALL_VILLAGES = new VillageOptions(VillageOptions.MIN_VILLAGE_RADIUS, VillageOptions.VAR_VILLAGE_RADIUS, VillageOptions.MIN_VILLAGE_DENSITY, VillageOptions.VAR_VILLAGE_DENSITY, VillageOptions.MIN_SPACE_BETWEEN_STRUCTURES, SMALL_HOUSES); 
-	public static final VillageOptions LARGE_VILLAGES = new VillageOptions(200, 300, 200, 300, VillageOptions.MIN_SPACE_BETWEEN_STRUCTURES, SMALL_HOUSES);
+	public static final VillageOptions LARGE_VILLAGES = new VillageOptions(200, 300, 500, 1000, VillageOptions.MIN_SPACE_BETWEEN_STRUCTURES, SMALL_HOUSES);
 	public static final VillageOptions VILLAGE_TYPE = LARGE_VILLAGES;
 	
 	private int x;
@@ -81,7 +81,7 @@ public class Village
 		
 		int density = villageOptions.minDensity + world.rand.nextInt(villageOptions.varDensity);
 		
-		System.out.println("number of possible houses: " + roadsides.size());
+		//System.out.println("number of possible houses: " + roadsides.size());
 		
 		for(int i = 0; i < density; i++)
 		{
@@ -147,7 +147,7 @@ public class Village
 			doorX = t.first % world.getWidth();
 			doorY = t.first / world.getWidth();
 			
-			System.out.println(doorX+","+doorY);
+			//System.out.println(doorX+","+doorY);
 			
 			open = createBuilding(world,t.second,doorX,doorY, height, doorPos, width - doorPos, true);
 			
@@ -195,6 +195,8 @@ public class Village
 			}
 		}*/
 		
+		world.setConstruct(doorX, doorY, 'D');
+		
 	}
 	
 	private void layFoundation(World world, Direction direction, int x, int y, int length, int leftWidth, int rightWidth, char type)
@@ -238,7 +240,7 @@ public class Village
 		//boolean exit = false;
 		
 		//System.out.println("len: "+len+", wid: "+wid);
-		for(int w = -leftWidth; w < rightWidth / 2 + 1; w++)
+		for(int w = -leftWidth; w < rightWidth; w++)
 		{
 			for(int l = 0; l < length; l++)
 			{
@@ -256,7 +258,26 @@ public class Village
 					}
 					else if(!test)
 					{
-						world.setConstruct(xx, yy, 'F');
+						if(w == -leftWidth)
+						{
+							world.setConstruct(xx, yy, 'W');
+						}
+						else if(w == rightWidth - 1)
+						{
+							world.setConstruct(xx, yy, 'W');
+						}
+						else if(l == 0)
+						{
+							world.setConstruct(xx, yy, 'W');
+						}
+						else if(l == length - 1)
+						{
+							world.setConstruct(xx, yy, 'W');
+						}
+						else
+						{
+							world.setConstruct(xx, yy, 'F');
+						}
 					}
 				}
 			}
